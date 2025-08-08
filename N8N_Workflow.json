@@ -1,0 +1,217 @@
+{
+  "name": "My workflow 21",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "373725a0-5ce9-4f79-b5eb-5a7af93194bb",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "641a53c1-3d85-4b99-8f33-24282d5e98d0",
+      "name": "Webhook",
+      "webhookId": "373725a0-5ce9-4f79-b5eb-5a7af93194bb"
+    },
+    {
+      "parameters": {
+        "url": "http://export.arxiv.org/api/query",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "search_query",
+              "value": "={{ $json.body.topic }}"
+            },
+            {
+              "name": "max_results",
+              "value": "5"
+            },
+            {
+              "name": "sortBy",
+              "value": "relevance"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "00a20a02-144b-46cc-a871-55478afa9135",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "8507cba5-05ed-4aad-b391-4ea73e275882",
+      "name": "XML"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "=feed.entry",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        592,
+        0
+      ],
+      "id": "653eff7b-dabd-43ff-a7e1-852bb0a6178e",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ae50d8a6-08b1-4d89-806c-5f8d92efb3ef",
+              "name": "title",
+              "value": "={{ $('Split Out').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "7313effd-f65d-4f98-afe0-1ccf9a279017",
+              "name": "summary",
+              "value": "={{ $json.content.parts[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "11641c16-0bac-4e7f-9f61-91c8638d2193",
+              "name": "url",
+              "value": "={{ $('Split Out').item.json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1152,
+        0
+      ],
+      "id": "b5363743-5383-4342-b865-3acfcefba996",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-1.5-flash-8b",
+          "mode": "list",
+          "cachedResultName": "models/gemini-1.5-flash-8b"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Please provide a concise, 3-sentence summary of the following research paper abstract. Focus on the core problem, the proposed method, and the main result. \n\nAbstract:\n{{ $json.summary }}\n\n\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        768,
+        0
+      ],
+      "id": "7118d9f9-7405-4fb9-a9ef-35e7f7c5c727",
+      "name": "Message a model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "blwsLauRBKlzcip2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "179f7ca7-c07f-4bc6-af94-1334afd58297",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "14f99d84933d6bd0e9714ad58a7ecdd8cb90f453695e47f1be6be9afa86d160e"
+  },
+  "id": "6HqZNHzpNVwq3zXm",
+  "tags": []
+}
